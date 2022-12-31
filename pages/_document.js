@@ -9,7 +9,7 @@ class MyDocument extends Document {
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
           <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-          <script
+          {/* <script
             src="https://giscus.app/client.js"
             data-repo="herekim/alwayshere"
             data-repo-id="R_kgDOIszcKg"
@@ -25,7 +25,7 @@ class MyDocument extends Document {
             data-loading="lazy"
             crossOrigin="anonymous"
             async
-          ></script>
+          ></script> */}
         </Head>
         <body className="bg-white font-sans text-black antialiased dark:bg-gray-900 dark:text-white">
           <Main />
