@@ -32,10 +32,10 @@ const Giscus = () => {
 
     const script = document.createElement('script')
     script.src = 'https://giscus.app/client.js'
-    script.setAttribute('data-repo', repo)
-    script.setAttribute('data-repo-id', repositoryId)
-    script.setAttribute('data-category', category)
-    script.setAttribute('data-category-id', categoryId)
+    script.setAttribute('data-repo', 'herekim/alwayshere')
+    script.setAttribute('data-repo-id', 'R_kgDOIszcKg')
+    script.setAttribute('data-category', 'Announcements')
+    script.setAttribute('data-category-id', 'DIC_kwDOIszcKs4CTV0c')
     script.setAttribute('data-mapping', mapping)
     script.setAttribute('data-strict', '0')
     script.setAttribute('data-reactions-enabled', reactions)
