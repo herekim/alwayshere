@@ -9,7 +9,7 @@ const siteMetadata = {
   siteRepo: 'https://github.com/herekim/alwayshere',
   siteLogo: '/static/images/logo.png',
   image: '/static/images/avatar.png',
-  socialBanner: '/static/images/twitter-card.png',
+  socialBanner: '/static/images/logo.png',
   email: 'khere220@gamil.com',
   github: 'https://github.com/herekim',
   // twitter: 'https://twitter.com/Twitter',
