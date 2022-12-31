@@ -11,11 +11,24 @@
 }
 
 .footnotes {
-  @apply pt-8 mt-12 border-t border-gray-200 dark:border-gray-700;
+  @apply mt-12 border-t border-gray-200 pt-8 dark:border-gray-700;
 }
 
 .csl-entry {
   @apply my-5;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src: url('/font/NotoSansKR/NotoSansKR-Regular.otf');
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src: url('/font/NotoSans/NotoSans-Regular.ttf');
+  font-style: normal;
+  unicode-range: U+0041-005A, U+0061-007A;
 }
 
 /* https://stackoverflow.com/questions/61083813/how-to-avoid-internal-autofill-selected-style-to-be-applied */
