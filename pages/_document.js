@@ -15,7 +15,7 @@ class MyDocument extends Document {
             data-repo-id="R_kgDOIszcKg"
             data-category="Announcements"
             data-category-id="DIC_kwDOIszcKs4CTV0c"
-            data-mapping="title"
+            data-mapping="pathname"
             data-strict="0"
             data-reactions-enabled="1"
             data-emit-metadata="1"
