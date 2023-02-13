@@ -31,7 +31,7 @@ module.exports = {
         14: '3.5rem',
       },
       fontFamily: {
-        sans: ['NotoSans', 'InterVariable', ...defaultTheme.fontFamily.sans],
+        sans: ['Pretendard', 'NotoSans', 'InterVariable', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         primary: colors.amber,

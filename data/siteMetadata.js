@@ -1,7 +1,7 @@
 const siteMetadata = {
-  title: 'Alwayshere',
+  title: 'alwayshere',
   author: 'Kim Heeyeol',
-  headerTitle: 'Alwayshere',
+  headerTitle: 'alwayshere',
   description: '내가 생각하는 어떤 것',
   language: 'en-us',
   theme: 'system', // system, dark or light
