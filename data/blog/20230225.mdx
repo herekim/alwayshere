@@ -1,0 +1,255 @@
+---
+title: Web Rendering with Next.js
+date: '2023-02-25'
+tags: ['rendering']
+draft: false
+summary: '그래서 렌더링이 뭐냐고요 시리즈'
+---
+
+# 그래서 렌더링이 뭐냐고요
+
+‘렌더링’은 프론트엔드 개발을 하면서 수도 없이 많이 듣는 키워드 중 하나입니다. 웹 렌더링, 브라우저 렌더링, 리액트 렌더링 등 수 많은 요소와 결합되며 이들은 각각 조금씩 다른 의미를 내포하고 있습니다. 하지만 ‘렌더링’이라는 키워드 아래에 묶여 다소 추상적인 의미로 표현이 되고 있다고 생각합니다. 그래서 ‘렌더링’이라는 키워드를 사용하는 주요 개념들을 각각 살펴보고, 그래서 과연 렌더링이 무엇인지 알아보는 과정을 써내려가보고자 합니다. 해당 아티클은 시리즈로 만들어질 예정입니다.
+
+# 시리즈 목차 (예상)
+
+1. Web Rendering with Next.js
+2. Browser Rendering
+3. React Rendering
+4. Hydrate, DeHydrate, ReHydrate (Next.js, React Query)
+5. 웹 렌더링 최적화
+6. 브라우저 렌더링 최적화
+7. 그 밖의 렌더링
+8. 그래서 렌더링이 뭐냐고요
+
+# #1. Web Rendering with Next.js
+
+## Web Rendering
+
+### Server Side Rendering (SSR)
+
+![Untitled](/public/static/images/SSR.png)
+
+1. SSR은 **서버에서 완전한 HTML 문자열을 생성해서 클라이언트로 보내는 것**을 의미합니다.
+2. 여기서 SSR은 Pre Rendering이나 Hydration을 제공하는 Next.js에서의 SSR이 아니라 전통적인 방법으로 서버에서 동적 페이지를 생성하는 것을 의미합니다.
+3. 브라우저가 응답을 받기 전에 서버에서 처리되기 때문에 클라이언트의 Data Fetch, Templating을 위한 Round Trip을 하지 않습니다.
+4. SSR을 사용하면 CPU-bound JavaScript가 처리될 때까지 기다리지 않아도 됩니다.
+5. 사실 SSR은 CSR이 등장하기 전까지 자연스러운 웹 개발 방법론이었습니다. php, jsp 등이 그 예시입니다.
+6. SSR이 자신이 구축하려는 서비스에 알맞은 방법인지는 서비스 유형에 따라 다릅니다. 또한 어떤 페이지는 SSR로, 어떤 페이지는 다른 방식(e.g. SSG, CSR …)으로 조합한 하이브리드 렌더링 방식으로 빌드할 수도 있습니다.
+7. React는 서버 렌더링을 위해 `renderToString()` 메서드를 제공하고, Next.js와 같이 SSR을 위한 프레임워크를 제공합니다. Vue는 server rendering guide나 Nuxt를 제공합니다. Angular는 Universal을 제공합니다.
+8. 중요한 점은 ‘왜’를 인지하는 것입니다. ‘왜’ SSR만으로 잘 동작하던 웹 개발을 CSR로 바꾸기 시작했으며, ‘왜’ SSR의 중요성이 다시 부각되었는지 인지하는 것입니다. (’왜’를 설명하는 것은 아티클의 주제에서 벗어나기에 이를 잘 설명하는 [아티클 링크](https://junilhwang.github.io/TIL/Javascript/Design/Vanilla-JS-Server-Side-Rendering/#_2-csr%E1%84%8B%E1%85%B4-%E1%84%83%E1%85%B3%E1%86%BC%E1%84%8C%E1%85%A1%E1%86%BC%E1%84%92%E1%85%A1%E1%84%80%E1%85%B5-%E1%84%81%E1%85%A1%E1%84%8C%E1%85%B5)로 대체하겠습니다.)
+
+### Static Site **Rendering (SSG)**
+
+![Untitled](/public/static/images/SSG.png)
+
+1. **SSG는 빌드 시 한번만 정적 페이지를 생성하는 방식**입니다. 일반적으로 미리 각 URL에 대해 별도의 HTML 파일을 생성합니다.
+2. 미리 생성된 HTML을 CDN에 배포해서 엣지 캐싱을 활용할 수 있기 때문에 매우 빠른 FCP를 제공합니다.
+3. **SSG**의 단점은 모든 URL에 대해 HTML 파일을 생성해야 한다는 점입니다. 미리 예측할 수 없거나 고유한 페이지 수가 많은 사이트의 경우 **SSG**는 적합하지 않을 수 있습니다.
+4. **SSG**와 Pre Rendering은 다릅니다. **SSG는 많은 client-side JavaScript 없이 상호 작용이 가능**합니다. 하지만 **Pre Rendering은 SPA의 FP 혹은 FCP를 개선하기 위해 미리 HTML 파일을 보여줄 뿐 진정한 상호 작용이 되기 위해선 JavaScript의 Hydration이 필요**합니다.
+5. **SSG**의 사례로는 E-Commerce, Blog 가 있습니다. 상품 리스트를 미리 생성해서 SSG로 제공하는 경우, Scrolling, 링크 클릭, 카드에 상품 추가 등의 상호 작용이 가능합니다.
+
+### SSR VS **SSG**
+
+1. SSR은 [Silver Bullet](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=stonedragony&logNo=50094453914)이 아닙니다. 유저의 요청이 있을 때마다 동적으로 서버에서 렌더링을 수행하는 것은 상당한 컴퓨팅 오버헤드 비용이 발생할 수 있습니다.
+2. SSR을 올바르게 사용하려면 컴포넌트 캐싱, 메모리 사용 관리, 메모이제이션 기술 적용 등을 위한 솔루션을 찾거나 구축하는 작업이 포함될 수 있습니다. 일반적으로 서버에서 한 번, 클라이언트에서 한 번 동일한 어플리케이션을 여러 번 처리하기 때문입니다. SSR이 더 빨리 무언가를 보여줄 수 있다고 해서 할 일 자체가 줄어드는 것은 아닙니다.
+3. SSR은 URL에 따라 on-demand HTML을 생성하지만 SSG가 정적 콘텐츠를 렌더링하는 것보다 느릴 수 있습니다.
+4. SSR의 장점은 **SSG**에서 가능한 것보다 더 최신의 데이터를 가져오고, 더 완전하게 요청에 응답하는 것입니다.
+5. 많은 업데이트가 발생하는 페이지는 **SSG**에서 제대로 작동하지 않습니다.
+
+### Client Side Rendering (CSR)
+
+![Untitled](/public/static/images/CSR.png)
+
+1. CSR은 **JavaScript를 사용해서 브라우저에서 직접 페이지를 렌더링하는 것을 의미**합니다. 모든 로직, 데이터 Fetching, templating, rounting은 서버가 아닌 클라이언트에서 처리합니다.
+2. CSR은 모바일에서 빠른 속도를 유지하기 힘듭니다. 하지만 JavaScript Budget을 잘 관리하고, 가능한 적은 RTT를 제공하면 Server Rendering의 성능에 근접할 수 있습니다.
+3. 중요한 스크립트나 데이터는 `<link rel=preload>`를 사용해서 더 빨리 전달할 수 있습니다. 그 밖에도 [PRPL](https://web.dev/i18n/en/apply-instant-loading-with-prpl/) 패턴을 사용할 수 있습니다.
+4. CSR의 주요 단점은 어플리케이션이 커짐에 따라 필요한 JavaScript의 양이 증가하는 경향이 있는 것입니다. JavaScript의 양이 많아지면 빠른 속도를 유지하기 힘듭니다.
+5. SPA를 구축하는 경우 대부분의 페이지에서 공유하는 유저 인터페이스에 [애플리케이션 셸 캐싱 기술](https://developer.chrome.com/blog/app-shell/)을 적용할 수 있습니다. 이를 Service Worker와 결합하면 재방문 시 체감 성능을 크게 향상시킬 수 있습니다.
+
+### Incremental Static Regeneration (ISR)
+
+1. ISR은 Incremental Static Regeneration의 약자입니다.
+2. SSR과 SSG의 장점을 결합한 방식이라고 이해할 수 있습니다. 빌드 타임에 정적인 페이지가 렌더링되며, 페이지의 콘텐츠가 변화할 때 전체 페이지가 다시 빌드되는 것이 아니라 해당 페이지만 리렌더링됩니다.
+3. ISR은 정적 콘텐츠와 동적 콘텐츠가 혼합된 웹사이트에서 유용합니다. 정적 콘텐츠에 대한 **SSG**의 성능 이점을 그대로 가져가면서 콘텐츠의 업데이트가 가능합니다.
+
+## Next.js Page Rendering
+
+### Pre Rendering
+
+1. 기본적으로 Next.js는 모든 페이지를 Pre Rendering합니다.
+2. 각 HTML은 페이지 동작을 위한 최소한의 JavaScript 코드와 연결되어 있습니다. 브라우저에 페이지가 로드되면, JavaScript 코드는 완전히 Interactive하게 합니다. 이 과정을 Hydration이라고 합니다.
+3. Next.js는 Static Generation, Server Side Rendering 두 가지 방식의 Pre Rendering을 가지고 있습니다. 차이점은 “언제 HTML이 생성되는가?” 입니다.
+4. Static Generation은 빌드 타임에 생성되며, 각 요청에서 재사용됩니다. (Next.js는 해당 방식을 권장합니다)
+5. Server Side Rendering은 유저의 요청마다 HTML을 발생시킵니다.
+6. Next.js는 두 가지 방식을 사용할 수 있도록 하며, 두 가지를 혼합한 하이브리드 앱도 만들 수 있습니다.
+7. CSR도 SSG, SSR과 함께 사용할 수 있습니다. 페이지의 어떤 부분은 클라이언트의 JavaScript 코드에 의해 렌더링될 수 있다는 의미입니다.
+
+### Static Generation (SSG)
+
+1. SSG를 사용하면 페이지 HTML은 빌드 시 생성됩니다. 프로덕션에서 next build를 실행할 때 생성되는 것입니다. 이 HTML은 각 요청에서 재사용되며, CDN에서 캐시할 수 있습니다.
+2. Next.js에서 데이터가 없는 경우, 있는 경우 두 사례를 바탕으로 페이지를 정적으로 생성할 수 있습니다.
+3. 데이터가 없는 경우의 SSG 예시 코드입니다.
+
+   - 펼쳐보기
+
+     ```tsx
+     function About() {
+       return <div>About</div>
+     }
+
+     export default About
+     ```
+
+4. 데이터가 있는 경우의 SSG 예시 코드입니다.
+
+   - 펼쳐보기
+
+     1. 콘텐츠가 외부 데이터에 의존하는 경우입니다.
+
+        ```tsx
+        // TODO: Need to fetch `posts` (by calling some API endpoint)
+        //       before this page can be pre-rendered.
+        export default function Blog({ posts }) {
+          return (
+            <ul>
+              {posts.map((post) => (
+                <li>{post.title}</li>
+              ))}
+            </ul>
+          )
+        }
+
+        // This function gets called at build time
+        export async function getStaticProps() {
+          // Call an external API endpoint to get posts
+          const res = await fetch('https://.../posts')
+          const posts = await res.json()
+
+          // By returning { props: { posts } }, the Blog component
+          // will receive `posts` as a prop at build time
+          return {
+            props: {
+              posts,
+            },
+          }
+        }
+        ```
+
+     2. 페이지 경로가 외부 데이터에 의존하는 경우입니다.
+
+        ```tsx
+        export default function Post({ post }) {
+          // Render post...
+        }
+
+        // This function gets called at build time
+        export async function getStaticPaths() {
+          // Call an external API endpoint to get posts
+          const res = await fetch('https://.../posts')
+          const posts = await res.json()
+
+          // Get the paths we want to pre-render based on posts
+          const paths = posts.map((post) => ({
+            params: { id: post.id },
+          }))
+
+          // We'll pre-render only these paths at build time.
+          // { fallback: false } means other routes should 404.
+          return { paths, fallback: false }
+        }
+
+        // This also gets called at build time
+        export async function getStaticProps({ params }) {
+          // params contains the post `id`.
+          // If the route is like /posts/1, then params.id is 1
+          const res = await fetch(`https://.../posts/${params.id}`)
+          const post = await res.json()
+
+          // Pass post data to the page via props
+          return { props: { post } }
+        }
+        ```
+
+5. 언제 SSG를 사용하면 좋을까요? 아래에는 Next.js에서 소개하는 예시입니다.
+   1. 마케팅 페이지
+   2. 블로그 포스트, 포트폴리오
+   3. 이커머스 상품 리스트 페이지
+   4. 도움말 및 문서 페이지
+6. 사용자 요청보다 페이지를 먼저 Pre Rendering 할 수 있는지 스스로에게 물어보는 것이 좋습니다. 그렇지 않은 경우에 SSG는 좋은 옵션이 아닙니다. 이럴 때에는 [CSR](https://nextjs.org/docs/basic-features/data-fetching/client-side), SSR을 통해 문제를 해결할 수 있습니다.
+
+### Server Side Rendering (SSR)
+
+1. 페이지가 각 요청에 따라 HTML 페이지를 생성합니다.
+2. SSR을 사용하려면 `getServerSideProps`라는 비동기 함수를 사용해야 합니다. 이 함수는 모든 요청에서 서버에 의해 호출됩니다.
+3. 예를 들어 페이지에서 자주 업데이트되는 데이터를 Pre Rendering 해야 한다고 가정해봅시다. 이 데이터를 가져와 아래와 같이 페이지에 전달하는 `getServerSideProps`를 작성할 수 있습니다.
+
+   - 펼쳐보기
+
+     ```tsx
+     export default function Page({ data }) {
+       // Render data...
+     }
+
+     // This gets called on every request
+     export async function getServerSideProps() {
+       // Fetch data from external API
+       const res = await fetch(`https://.../data`)
+       const data = await res.json()
+
+       // Pass data to the page via props
+       return { props: { data } }
+     }
+     ```
+
+## Rendering 방식에 따른 성능 차이
+
+### Server Side Rendering
+
+1. SSR은 문자열과 링크를 브라우저로 보내는 것이기 때문에 일반적으로 빠른 FP와 FCP를 제공합니다.
+2. 서버에서 페이지 로직 및 렌더링을 실행하면 클라이언트에 많은 자바스크립트를 전송하지 않아도 되기 때문에 빠른 TTI를 제공합니다.
+3. 자바스크립트에 대한 Budget을 확보했기 때문에 서드 파티 라이브러리를 사용하는 것에 부담이 적습니다.
+4. 서버에서 페이지를 생성하는 시간이 걸리기 때문에 종종 TTFB가 느려질 수 있습니다.
+
+### Static Site Rendering
+
+1. CDN에 정적 페이지를 캐싱하므로 빠른 TTFB를 제공합니다.
+2. 빌드 타임에 정적페이지가 만들어지므로 빠른 FP, FCP, TTI를 제공합니다.
+3. 빌드해야할 자바스크립트 파일이 너무 많을 경우 SSG가 어렵거나 실행 불가능할 수 있습니다.
+
+### Client Side Rendering
+
+1. 모바일용으로 빠르게 가져오기 어렵습니다.
+2. 애플리케이션이 커짐에 따라 필요한 JavaScript의 양이 많아질 수 있습니다. 이런 경우엔 FP, FCP, TTI가 느려질 수 있습니다.
+3. 페이지 전환 시 이미 JavaScript 파일을 모두 받아놓은 상황이기 때문에 빠릅니다.
+
+# 용어 설명
+
+- CPU-bound JavaScript
+
+  JavaScript 코드가 실행될 때 CPU 성능이 병목 현상을 일으키는 상황을 의미합니다. JavaScript 코드가 CPU를 많이 사용하여 다른 작업들이 느려지거나, 멈추는 상황을 말합니다. 예를 들어 작업 비용이 높은 반복문, 재귀 함수, 복잡한 수학 계산과 같은 CPU 집약적인 작업이 있는 경우나 JavaScript 코드의 양이 많은 경우가 있습니다.
+
+- 엣지 캐싱
+
+  정적 콘텐츠(e.g. HTML, images, scripts)를 CDN edge에 캐싱하는 것을 말합니다.
+
+- FP
+
+  First Paint의 약자입니다. 사용자에게 처음 표시되는 첫번째 픽셀을 의미합니다.
+
+- FCP
+
+  First Contentful Paint의 약자입니다. 요청된 콘텐츠가 유저에게 보여지는 속도입니다.
+
+- TTFB
+
+  Time to First Byte의 약자입니다.
+
+# 레퍼런스
+
+[Next.js Document (Pages)](https://nextjs.org/docs/basic-features/pages)
+
+[Rendering on the web](https://web.dev/rendering-on-the-web/)
+
+[Next.js 페이지 렌더링 이해하기](https://velog.io/@gwak2837/Next.js-%ED%8E%98%EC%9D%B4%EC%A7%80-%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
+
+[프레임워크 없이 만드는 SSR](https://junilhwang.github.io/TIL/Javascript/Design/Vanilla-JS-Server-Side-Rendering/)
