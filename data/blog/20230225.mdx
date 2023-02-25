@@ -3,31 +3,18 @@ title: Web Rendering with Next.js
 date: '2023-02-25'
 tags: ['rendering']
 draft: false
-summary: '그래서 렌더링이 뭐냐고요 시리즈 첫번째'
+summary: '<그래서 렌더링이 뭐냐고요 시리즈> 첫번째'
 ---
 
-## 그래서 렌더링이 뭐냐고요
+# Web Rendering with Next.js
 
-‘렌더링’은 프론트엔드 개발을 하면서 수도 없이 많이 듣는 키워드 중 하나입니다. 웹 렌더링, 브라우저 렌더링, 리액트 렌더링 등 수 많은 요소와 결합되며 이들은 각각 조금씩 다른 의미를 내포하고 있습니다. 하지만 ‘렌더링’이라는 키워드 아래에 묶여 다소 추상적인 의미로 표현이 되고 있다고 생각합니다. 그래서 ‘렌더링’이라는 키워드를 사용하는 주요 개념들을 각각 살펴보고, 그래서 과연 렌더링이 무엇인지 알아보는 과정을 써내려가보고자 합니다. 해당 아티클은 시리즈로 만들어질 예정입니다.
-
-## 예상 시리즈 목차
-
-1. Web Rendering with Next.js
-2. Browser Rendering
-3. React Rendering
-4. Hydrate, DeHydrate, ReHydrate (Next.js, React Query)
-5. 웹 렌더링 최적화
-6. 브라우저 렌더링 최적화
-7. 그 밖의 렌더링
-8. 그래서 렌더링이 뭐냐고요
-
-# #1. Web Rendering with Next.js
+‘렌더링’은 프론트엔드 개발을 하면서 수도 없이 많이 듣는 키워드 중 하나입니다. 웹 렌더링, 브라우저 렌더링, 리액트 렌더링 등 수 많은 요소와 결합되며 이들은 각각 조금씩 다른 의미를 내포하고 있습니다. 하지만 ‘렌더링’이라는 키워드 아래에 묶여 다소 추상적인 의미로 표현이 되고 있다고 생각합니다. 그래서 ‘렌더링’이라는 키워드를 사용하는 주요 개념들을 각각 살펴보고, 그래서 과연 렌더링이 무엇인지 알아보는 과정을 써내려가보고자 합니다. 해당 아티클은 시리즈로 만들어질 예정입니다. 오늘은 첛번째 주제인 Web Rendering에 대해서 다뤄보고자 합니다.
 
 ## Web Rendering
 
 ### Server Side Rendering (SSR)
 
-![Untitled](/public/static/images/SSR.png)
+![SSR](/static/images/SSR.png)
 
 1. SSR은 **서버에서 완전한 HTML 문자열을 생성해서 클라이언트로 보내는 것**을 의미합니다.
 2. 여기서 SSR은 Pre Rendering이나 Hydration을 제공하는 Next.js에서의 SSR이 아니라 전통적인 방법으로 서버에서 동적 페이지를 생성하는 것을 의미합니다.
@@ -40,7 +27,7 @@ summary: '그래서 렌더링이 뭐냐고요 시리즈 첫번째'
 
 ### Static Site **Rendering (SSG)**
 
-![Untitled](/public/static/images/SSG.png)
+![SSG](/static/images/SSG.png)
 
 1. **SSG는 빌드 시 한번만 정적 페이지를 생성하는 방식**입니다. 일반적으로 미리 각 URL에 대해 별도의 HTML 파일을 생성합니다.
 2. 미리 생성된 HTML을 CDN에 배포해서 엣지 캐싱을 활용할 수 있기 때문에 매우 빠른 FCP를 제공합니다.
@@ -58,7 +45,7 @@ summary: '그래서 렌더링이 뭐냐고요 시리즈 첫번째'
 
 ### Client Side Rendering (CSR)
 
-![Untitled](/public/static/images/CSR.png)
+![CSR](/static/images/CSR.png)
 
 1. CSR은 **JavaScript를 사용해서 브라우저에서 직접 페이지를 렌더링하는 것을 의미**합니다. 모든 로직, 데이터 Fetching, templating, rounting은 서버가 아닌 클라이언트에서 처리합니다.
 2. CSR은 모바일에서 빠른 속도를 유지하기 힘듭니다. 하지만 JavaScript Budget을 잘 관리하고, 가능한 적은 RTT를 제공하면 Server Rendering의 성능에 근접할 수 있습니다.
@@ -90,85 +77,81 @@ summary: '그래서 렌더링이 뭐냐고요 시리즈 첫번째'
 2. Next.js에서 데이터가 없는 경우, 있는 경우 두 사례를 바탕으로 페이지를 정적으로 생성할 수 있습니다.
 3. 데이터가 없는 경우의 SSG 예시 코드입니다.
 
-   - 펼쳐보기
+   ```tsx
+   function About() {
+     return <div>About</div>
+   }
 
-     ```tsx
-     function About() {
-       return <div>About</div>
-     }
-
-     export default About
-     ```
+   export default About
+   ```
 
 4. 데이터가 있는 경우의 SSG 예시 코드입니다.
 
-   - 펼쳐보기
+   1. 콘텐츠가 외부 데이터에 의존하는 경우입니다.
 
-     1. 콘텐츠가 외부 데이터에 의존하는 경우입니다.
+      ```tsx
+      // TODO: Need to fetch `posts` (by calling some API endpoint)
+      //       before this page can be pre-rendered.
+      export default function Blog({ posts }) {
+        return (
+          <ul>
+            {posts.map((post) => (
+              <li>{post.title}</li>
+            ))}
+          </ul>
+        )
+      }
 
-        ```tsx
-        // TODO: Need to fetch `posts` (by calling some API endpoint)
-        //       before this page can be pre-rendered.
-        export default function Blog({ posts }) {
-          return (
-            <ul>
-              {posts.map((post) => (
-                <li>{post.title}</li>
-              ))}
-            </ul>
-          )
+      // This function gets called at build time
+      export async function getStaticProps() {
+        // Call an external API endpoint to get posts
+        const res = await fetch('https://.../posts')
+        const posts = await res.json()
+
+        // By returning { props: { posts } }, the Blog component
+        // will receive `posts` as a prop at build time
+        return {
+          props: {
+            posts,
+          },
         }
+      }
+      ```
 
-        // This function gets called at build time
-        export async function getStaticProps() {
-          // Call an external API endpoint to get posts
-          const res = await fetch('https://.../posts')
-          const posts = await res.json()
+   2. 페이지 경로가 외부 데이터에 의존하는 경우입니다.
 
-          // By returning { props: { posts } }, the Blog component
-          // will receive `posts` as a prop at build time
-          return {
-            props: {
-              posts,
-            },
-          }
-        }
-        ```
+      ```tsx
+      export default function Post({ post }) {
+        // Render post...
+      }
 
-     2. 페이지 경로가 외부 데이터에 의존하는 경우입니다.
+      // This function gets called at build time
+      export async function getStaticPaths() {
+        // Call an external API endpoint to get posts
+        const res = await fetch('https://.../posts')
+        const posts = await res.json()
 
-        ```tsx
-        export default function Post({ post }) {
-          // Render post...
-        }
+        // Get the paths we want to pre-render based on posts
+        const paths = posts.map((post) => ({
+          params: { id: post.id },
+        }))
 
-        // This function gets called at build time
-        export async function getStaticPaths() {
-          // Call an external API endpoint to get posts
-          const res = await fetch('https://.../posts')
-          const posts = await res.json()
+        // We'll pre-render only these paths at build time.
+        // { fallback: false } means other routes should 404.
+        return { paths, fallback: false }
+      }
 
-          // Get the paths we want to pre-render based on posts
-          const paths = posts.map((post) => ({
-            params: { id: post.id },
-          }))
+      // This also gets called at build time
+      export async function getStaticProps({ params }) {
+        // params contains the post `id`.
+        // If the route is like /posts/1, then params.id is 1
+        const res = await fetch(`https://.../posts/${params.id}`)
+        const post = await res.json()
 
-          // We'll pre-render only these paths at build time.
-          // { fallback: false } means other routes should 404.
-          return { paths, fallback: false }
-        }
-
-        // This also gets called at build time
-        export async function getStaticProps({ params }) {
-          // params contains the post `id`.
-          // If the route is like /posts/1, then params.id is 1
-          const res = await fetch(`https://.../posts/${params.id}`)
-          const post = await res.json()
-
-          // Pass post data to the page via props
-          return { props: { post } }
-        }
-        ```
+        // Pass post data to the page via props
+        return { props: { post } }
+      }
+      ```
 
 5. 언제 SSG를 사용하면 좋을까요? 아래에는 Next.js에서 소개하는 예시입니다.
    1. 마케팅 페이지
@@ -183,23 +166,21 @@ summary: '그래서 렌더링이 뭐냐고요 시리즈 첫번째'
 2. SSR을 사용하려면 `getServerSideProps`라는 비동기 함수를 사용해야 합니다. 이 함수는 모든 요청에서 서버에 의해 호출됩니다.
 3. 예를 들어 페이지에서 자주 업데이트되는 데이터를 Pre Rendering 해야 한다고 가정해봅시다. 이 데이터를 가져와 아래와 같이 페이지에 전달하는 `getServerSideProps`를 작성할 수 있습니다.
 
-   - 펼쳐보기
+   ```tsx
+   export default function Page({ data }) {
+     // Render data...
+   }
 
-     ```tsx
-     export default function Page({ data }) {
-       // Render data...
-     }
+   // This gets called on every request
+   export async function getServerSideProps() {
+     // Fetch data from external API
+     const res = await fetch(`https://.../data`)
+     const data = await res.json()
 
-     // This gets called on every request
-     export async function getServerSideProps() {
-       // Fetch data from external API
-       const res = await fetch(`https://.../data`)
-       const data = await res.json()
-
-       // Pass data to the page via props
-       return { props: { data } }
-     }
-     ```
+     // Pass data to the page via props
+     return { props: { data } }
+   }
+   ```
 
 ## Rendering 방식에 따른 성능 차이
 
